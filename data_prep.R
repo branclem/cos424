@@ -42,3 +42,5 @@ pred <- cross.validate(5,
 	     function(model, new.data) { return(predict(model, newdata=new.data)) } );
 abs(pred - data.omitted$C1[1:100]);
 
+
+
