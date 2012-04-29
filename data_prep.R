@@ -23,7 +23,7 @@ data$D3A<-as.numeric(data$D3A);
 
 data$D3B<-sub("[[:graph:][:space:]]*\\(", "", data$D3B);
 data$D3B<-sub("\\)[[:graph:][:space:]]*", "", data$D3B);
-data$D3B<-as.numeric(data$D3A);
+data$D3B<-as.numeric(data$D3B);
 
 data$C1<-sub("[[:graph:][:space:]]*\\(", "", data$C1);
 data$C1<-sub("\\)[[:graph:][:space:]]*", "", data$C1);
@@ -33,15 +33,17 @@ data$C1<-as.numeric(data$C1);
 #we need to skip NA values
 
 data.omitted<-data[!is.na(data$A1),]
-data.omitted<-data[!is.na(data$A2),]
-data.omitted<-data[!is.na(data$A5),]
-data.omitted<-data[!is.na(data$D3A),]
-data.omitted<-data[!is.na(data$D3B),]
-data.omitted<-data[!is.na(data$C1),]
+data.omitted<-data.omitted[!is.na(data.omitted$A2),]
+data.omitted<-data.omitted[!is.na(data.omitted$A5),]
+data.omitted<-data.omitted[!is.na(data.omitted$D3A),]
+data.omitted<-data.omitted[!is.na(data.omitted$D3B),]
+data.omitted<-data.omitted[!is.na(data.omitted$C1),]
 
-fit<-glm(C1~A1+A2+A5+D3A+D3B, gaussian, data.omitted)
+fit.linear<-lm(C1~A1+A2+A5+D3A+D3B, data.omitted, na.action=na.omit)
+fit.glm<-glm(C1~A1+A2+A5+D3A+D3B, gaussian, data.omitted, na.action=na.omit)
 summary(fit)
 
 plot.new()
-points(y=fit$fitted.values,x = data.omitted$A1  col='red')
+points(y=fit.linear$fitted.values, x = data.omitted$A1,  col='red')
 points(y=data.omitted$C1, x=data.omitted$A1, col='green')
+points(y=fit.glm$fitted.values, x = data.omitted$A1,  col='orange')
