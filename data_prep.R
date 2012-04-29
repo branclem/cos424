@@ -30,6 +30,11 @@ fit.linear<-lm(C1~A1+A2+A5+D3A+D3B, data.omitted, na.action=na.omit)
 fit.glm<-glm(C1~A1+A2+A5+D3A+D3B, gaussian, data.omitted, na.action=na.omit)
 summary(fit.glm)
 
+raws<-cbind(data.omitted$C1, data.omitted$A1, data.omitted$A2, data.omitted$A5, data.omitted$D3A, data.omitted$D3B)
+#multmix.data<-makemultdata(raws, cuts = median(c(data.omitted$C1, data.omitted$A1, data.omitted$A2, data.omitted$A5, data.omitted$D3A, data.omitted$D3B)))
+fit.multmix<-multmixEM(raws, k = 6)
+summary(fit.multmix)
+
 #plot(y=fit.linear$fitted.values, x = data.omitted$A1,  col='red')
 #points(y=data.omitted$C1, x=data.omitted$A1, col='green')
 #points(y=fit.glm$fitted.values, x = data.omitted$A1,  col='orange')
