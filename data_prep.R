@@ -30,9 +30,6 @@ summary(fit.glm)
 
 
 plot.new()
-plot(y=data.omitted$C1, x=data.omitted$A1, col='green')
-points(y=fit.linear$fitted.values, x = data.omitted$A1,  col='red')
-
 plot(y=fit.linear$fitted.values, x = data.omitted$A1,  col='red')
 points(y=data.omitted$C1, x=data.omitted$A1, col='green')
 points(y=fit.glm$fitted.values, x = data.omitted$A1,  col='orange')
