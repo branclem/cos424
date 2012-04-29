@@ -1,51 +1,37 @@
 
-# Read in the dataset.
-library(foreign);
-library(mixtools);
-raw.data <- read.dta(file="alcohol_data.dta");
+# Return a list L with two elements:
+# L#data  is the data for training and testing.
+# L#validation.set is the final validation set.
+get.data <- function() {
 
-head(raw.data);
-validation.set<-raw.data[9000:10904, ];
-data<-raw.data[1:8999,];
+    # Read in the dataset.
+    library(foreign);
+    raw.data <- read.dta(file="alcohol_data.dta");  
 
-data$A2<-as.numeric(data$A2);
-data$A5<-as.numeric(data$A5);
-data$D3A<-as.numeric(data$D3A);
-data$D3B<-as.numeric(data$D3B);
-data$C1<-as.numeric(data$C1);
+# TODO: shuffle the data first.
 
-#na.action = na.omit
-#we need to skip NA values
+    # Set aside a validation set.
+    validation.set <- raw.data[9000:10904, ];
+    data <- raw.data[1:8999,];
 
-data.omitted<-data[!is.na(data$A1),]
-data.omitted<-data.omitted[!is.na(data.omitted$A2),]
-data.omitted<-data.omitted[!is.na(data.omitted$A5),]
-data.omitted<-data.omitted[!is.na(data.omitted$D3A),]
-data.omitted<-data.omitted[!is.na(data.omitted$D3B),]
-data.omitted<-data.omitted[!is.na(data.omitted$C1),]
+    # Prep the data, converting relevant fields to numeric
+    # and omitting N/A values.
+    data$A2 <- as.numeric(data$A2);
+    data$A5 <- as.numeric(data$A5);
+    data$D3A <- as.numeric(data$D3A);
+    data$D3B <- as.numeric(data$D3B);
+    data$C1 <- as.numeric(data$C1);
 
-data.omitted<-data.frame(data.omitted, row.names=NULL);
+    data.omitted<-data[!is.na(data$A1),]
+    data.omitted<-data.omitted[!is.na(data.omitted$A2),]
+    data.omitted<-data.omitted[!is.na(data.omitted$A5),]
+    data.omitted<-data.omitted[!is.na(data.omitted$D3A),]
+    data.omitted<-data.omitted[!is.na(data.omitted$D3B),]
+    data.omitted<-data.omitted[!is.na(data.omitted$C1),]
 
-fit.linear<-lm(C1~A1+A2+A5+D3A+D3B, data.omitted, na.action=na.omit)
-fit.glm<-glm(C1~A1+A2+A5+D3A+D3B, gaussian, data.omitted, na.action=na.omit)
-summary(fit.glm)
+    data.omitted<-data.frame(data.omitted, row.names=NULL);
 
-raws<-cbind(data.omitted$C1, data.omitted$A1, data.omitted$A2, data.omitted$A5, data.omitted$D3A, data.omitted$D3B)
-#multmix.data<-makemultdata(raws, cuts = median(c(data.omitted$C1, data.omitted$A1, data.omitted$A2, data.omitted$A5, data.omitted$D3A, data.omitted$D3B)))
-fit.multmix<-multmixEM(raws, k = 6)
-summary(fit.multmix)
+    list(data=data.omitted, validation.set=validation.set);
 
-#plot(y=fit.linear$fitted.values, x = data.omitted$A1,  col='red')
-#points(y=data.omitted$C1, x=data.omitted$A1, col='green')
-#points(y=fit.glm$fitted.values, x = data.omitted$A1,  col='orange')
-
-# Sample run with first 100 points.
-source(validation.R);
-pred <- cross.validate(5,
-           data.omitted[1:100,],
-           function(data) { return(glm(C1~A1+A2+A5+D3A+D3B, data=data)) },
-	     function(model, new.data) { return(predict(model, newdata=new.data)) } );
-abs(pred - data.omitted$C1[1:100]);
-
-
+}
 
