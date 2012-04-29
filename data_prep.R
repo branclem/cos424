@@ -28,13 +28,12 @@ fit.linear<-lm(C1~A1+A2+A5+D3A+D3B, data.omitted, na.action=na.omit)
 fit.glm<-glm(C1~A1+A2+A5+D3A+D3B, gaussian, data.omitted, na.action=na.omit)
 summary(fit.glm)
 
-<<<<<<< HEAD
+
 plot.new()
 plot(y=data.omitted$C1, x=data.omitted$A1, col='green')
 points(y=fit.linear$fitted.values, x = data.omitted$A1,  col='red')
-=======
+
 plot(y=fit.linear$fitted.values, x = data.omitted$A1,  col='red')
 points(y=data.omitted$C1, x=data.omitted$A1, col='green')
->>>>>>> d6b535dc3c496511f436de6d66a8fecd86731b4d
 points(y=fit.glm$fitted.values, x = data.omitted$A1,  col='orange')
 
