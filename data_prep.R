@@ -24,11 +24,21 @@ data.omitted<-data.omitted[!is.na(data.omitted$D3A),]
 data.omitted<-data.omitted[!is.na(data.omitted$D3B),]
 data.omitted<-data.omitted[!is.na(data.omitted$C1),]
 
+data.omitted<-data.frame(data.omitted, row.names=NULL);
+
 fit.linear<-lm(C1~A1+A2+A5+D3A+D3B, data.omitted, na.action=na.omit)
 fit.glm<-glm(C1~A1+A2+A5+D3A+D3B, gaussian, data.omitted, na.action=na.omit)
 summary(fit.glm)
 
-plot(y=fit.linear$fitted.values, x = data.omitted$A1,  col='red')
-points(y=data.omitted$C1, x=data.omitted$A1, col='green')
-points(y=fit.glm$fitted.values, x = data.omitted$A1,  col='orange')
+#plot(y=fit.linear$fitted.values, x = data.omitted$A1,  col='red')
+#points(y=data.omitted$C1, x=data.omitted$A1, col='green')
+#points(y=fit.glm$fitted.values, x = data.omitted$A1,  col='orange')
+
+# Sample run with first 100 points.
+source(validation.R);
+pred <- cross.validate(5,
+           data.omitted[1:100,],
+           function(data) { return(glm(C1~A1+A2+A5+D3A+D3B, data=data)) },
+	     function(model, new.data) { return(predict(model, newdata=new.data)) } );
+abs(pred - data.omitted$C1[1:100]);
 
