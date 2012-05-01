@@ -2,28 +2,36 @@
 source('data_prep.R');
 source('validation.R');
 
-D <- get.data();
-data <- D$data;
+data <- get.data.numeric();
 
-fit.linear<-lm(C1~A1+A2+A5+D3A+D3B, data, na.action=na.omit)
-fit.glm<-glm(C1~A1+A2+A5+D3A+D3B, gaussian, data, na.action=na.omit)
+# test
+fit.glm<-glm(C1~A1+A2+A3+A5+D3A+D3B+F5+G14+G15, poisson, data, na.action=na.omit)
 summary(fit.glm)
 
-#plot(y=fit.linear$fitted.values, x = data$A1,  col='red')
-#points(y=data.omitted$C1, x=data$A1, col='green')
-#points(y=fit.glm$fitted.values, x = data$A1,  col='orange')
+#exp(predict(fit.glm, newdata=data[1:N,]));
 
 # Run it on this stuff.
-source('validation.R');
-N <- 1000;
+print(nrow(data));
+N <- 3000;
 actual <- data$C1[1:N];
 pred <- cross.validate(5,
            data[1:N,],
-           function(data) { return(glm(C1~A1+A2+A5+D3A+D3B, gaussian, data=data)) },
-	     function(model, new.data) { return(predict(model, newdata=new.data)) } );
+           function(data) { return(glm(C1~A1+A2+A3+A5+D3A+D3B+F5+G14+G15, poisson, data=data)) },
+	     function(model, new.data) {return(predict(model, newdata=new.data)) } );
+pred <- exp(pred);
+
 rounded.pred <- round(pred);
-mean(abs(pred - actual));
-mean(abs(rounded.pred - actual));
-mean(abs(rep(1, N) - actual));
+rounded.pred[rounded.pred == 0] = 1;
+rounded.pred[rounded.pred > 6] = 6;
+
+# constrain predictions to be within valid range.
+floor.pred <- floor(pred);
+floor.pred[floor.pred == 0] = 1;
+floor.pred[floor.pred > 6] = 6;
+
+cat('Base predictions: ', mean(abs(pred - actual)), '\n');
+cat('Rounded predictions: ', mean(abs(rounded.pred - actual)), '\n');
+cat('Floored predictions: ', mean(abs(floor.pred - actual)), '\n');
+cat('All 1: ', mean(abs(rep(1, N) - actual)), '\n');
 
 
