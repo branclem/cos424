@@ -30,34 +30,42 @@ get.data.numeric <- function() {
     # Read the data.
     load('alcohol_data.rda');
 
-    # Prep the data, converting relevant fields to numeric
-    # and omitting N/A values.
-    data$A2 <- as.numeric(data$A2);
-    data$A3 <- as.numeric(data$A3);
-    data$A5 <- as.numeric(data$A5);
-    data$D3A <- as.numeric(data$D3A);
-    data$D3B <- as.numeric(data$D3B);
-    data$F5 <- as.numeric(data$F5);
-    data$G14 <- as.numeric(data$G14);
-    data$G15 <- as.numeric(data$G15);
+    # Convert all fields to numeric.
+    to.remove = NULL;
+    for (i in 3:483) {
+        data[,i] <- as.numeric(data[,i]);
+    }
 
-    data$C1 <- as.numeric(data$C1);
+    # Omit any columns that don't have the response variable.
+    data <- data[!is.na(data$C1),]
+    data <- data.frame(data, row.names=NULL);
 
-    data.omitted <- data[!is.na(data$A1),]
-    data.omitted <- data.omitted[!is.na(data.omitted$A2),]
-    data.omitted <- data.omitted[!is.na(data.omitted$A3),]
-    data.omitted <- data.omitted[!is.na(data.omitted$A5),]
-    data.omitted <- data.omitted[!is.na(data.omitted$D3A),]
-    data.omitted <- data.omitted[!is.na(data.omitted$D3B),]
-    data.omitted <- data.omitted[!is.na(data.omitted$F5),]
-    data.omitted <- data.omitted[!is.na(data.omitted$G14),]
-    data.omitted <- data.omitted[!is.na(data.omitted$G15),]
+    # Prep the ethnicity data.
+    data[is.na(data$G3A),]$G3A <- 0;
+    data[is.na(data$G3B),]$G3B <- 0;
+    data[is.na(data$G3C),]$G3C <- 0;
+    data[is.na(data$G3D),]$G3D <- 0;
+    data[is.na(data$G3E),]$G3E <- 0;
 
-    data.omitted<-data.omitted[!is.na(data.omitted$C1),]
+    # Remove any columns with less than 7000, the others have
+    # N/A values replaced by the mean of the column.
+    for (i in 3:483) {
+        not.na <- data[!is.na(data[,i]),i];
+        num.not.na <- nrow(data[!is.na(data[,i]),]);
+	  if (num.not.na < 7000) {
+            cat(i, ':', names(data)[i], ':', num.not.na, '\n');
+            flush.console();
+            to.remove = c(to.remove, i);
+	  }
+	  else {
+            data[is.na(data[,i]), i] <- round(mean(not.na));
+	  }
+    }
 
-    data.omitted<-data.frame(data.omitted, row.names=NULL);
+    cat(to.remove, '\n');
+    data <- data[, -to.remove];
 
-    return(data.omitted);
+    return(data);
 
 }
 
