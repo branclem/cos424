@@ -1,5 +1,6 @@
 
 library(MASS);
+library(ggplot2);
 
 source('data_prep.R');
 source('validation.R');
@@ -36,6 +37,8 @@ test.glm <- function(data, formula, family) {
     cat('Floored predictions: avg offset =', mean(abs(floor.pred - actual)), ',', 100*length(which(floor.pred == actual)) / length(actual), '%\n');
     cat('All 1: avg offset =', mean(abs(rep(1, N) - actual)), ',', 100*length(which(1 == actual)) / length(actual), '%\n');
 
+    return(mean(abs(floor.pred - actual)));
+
 }
 
 test.polr <- function(data, formula) {
@@ -48,6 +51,7 @@ test.polr <- function(data, formula) {
 
     # Run it on this stuff.
     cat('Running polr on', nrow(data), 'rows of data.\n');    N <- nrow(data);
+    N <- nrow(data);
     actual <- as.numeric(data$C1[1:N]);
     pred <- cross.validate(5,
                data[1:N,],
@@ -61,6 +65,8 @@ test.polr <- function(data, formula) {
 
     data$C1 <- as.numeric(data$C1);
 
+    return(mean(abs(pred - actual)));
+
 }
 
 # Break the variables into categories.
@@ -73,19 +79,71 @@ other.students <- 'D1A+D1B+D1C+D1D+D1E+D1F+D1G+D1H+D1I+D2A+D2B+D3A+D3B+D4A+D4B+D
 personal.alcohol.related <- 'E23+E24+E25+E27A+E27B+E28C+G9+G10+G11';
 alcohol.use <- 'C2+C7+C8+C9+C10+C17A+C17B+C17C+C17D+C17E+C17F+C17G+C17H+C17I+C17J+C17K+C17L+C18A+C18B+C18C+C18D+C18E+C18F+C19A+C19B+C19C+C19D+C19E+C19F+C19G+C19H+C20A+C20B+C20C+C20D+C20E+C20F+C20G+C20H+C20I+C20J+C20K+C20L+C20M+C21+C22A+C22B+C22C+C22D+C22E+C22F+C22G+C22H+C22I+C22J+C22K+C22L+C22M+C22N+C22O+C22P+C22Q+C22R+C22S';
 
-formula = as.formula(paste('C1~', demographic, '+',
-                                  background, '+',
-                                  student.life, '+',
-                                  personal, '+',
-                                  policy.views, '+',
-                                  other.students, '+',
-                                  personal.alcohol.related));
-test.glm(data, formula, gaussian());
-test.glm(data, formula, poisson());
-test.polr(data, formula);
 
+formula1 = as.formula(paste('C1~', demographic, '+',
+                                   background));
+formula2 = as.formula(paste('C1~', demographic, '+',
+                                   background, '+',
+                                   student.life, '+',
+                                   personal));
+formula3 = as.formula(paste('C1~', demographic, '+',
+                                   background, '+',
+                                   student.life, '+',
+                                   personal, '+',
+                                   policy.views, '+',
+                                   other.students));
+formula4 = as.formula(paste('C1~', demographic, '+',
+                                   background, '+',
+                                   student.life, '+',
+                                   personal, '+',
+                                   policy.views, '+',
+                                   other.students, '+',
+                                   personal.alcohol.related));
+
+    fit.glm <- glm(formula4, poisson, data);
+    summary(fit.glm);
+
+options(stringsAsFactors = FALSE);
+results <- data.frame(Algorithm=character(16), 'Features Used'=character(16), Error=numeric(16), stringsAsFactors=F);
+
+N <- nrow(data);
+baseline <- mean(abs(rep(1, N) - as.numeric(data$C1[1:N])));
+results[1,] <- c('Constant', 'Feature Class 1', baseline);
+results[2,] <- c('Constant', 'Feature Class <= 2', baseline);
+results[3,] <- c('Constant', 'Feature Class <= 3', baseline);
+results[4,] <- c('Constant', 'Feature Class <= 4', baseline);
+
+cat('Category 1\n');
+results[5,] <- c('GLM - Gaussian', 'Feature Class 1', test.glm(data, formula1, gaussian()));
+results[6,] <- c('GLM - Poisson', 'Feature Class 1', test.glm(data, formula1, poisson()));
+results[7,] <- c('Ordered Logistic', 'Feature Class 1', test.polr(data, formula1));
+
+cat('Categories 1, 2\n');
+results[8,] <- c('GLM - Gaussian', 'Feature Class <= 2', test.glm(data, formula2, gaussian()));
+results[9,] <- c('GLM - Poisson', 'Feature Class <= 2', test.glm(data, formula2, poisson()));
+results[10,] <- c('Ordered Logistic', 'Feature Class <= 2', test.polr(data, formula2));
+
+cat('Categories 1, 2, 3\n');
+results[11,] <- c('GLM - Gaussian', 'Feature Class <= 3', test.glm(data, formula3, gaussian()));
+results[12,] <- c('GLM - Poisson', 'Feature Class <= 3', test.glm(data, formula3, poisson()));
+results[13,] <- c('Ordered Logistic', 'Feature Class <= 3', test.polr(data, formula3));
+
+cat('Categories 1, 2, 3, 4\n');
+results[14,] <- c('GLM - Gaussian', 'Feature Class <= 4', test.glm(data, formula4, gaussian()));
+results[15,] <- c('GLM - Poisson', 'Feature Class <= 4', test.glm(data, formula4, poisson()));
+results[16,] <- c('Ordered Logistic', 'Feature Class <= 4', test.polr(data, formula4));
+
+results$Error <- as.numeric(results$Error);
+
+ggplot(results, aes(x=Features.Used, y=Error, fill=Features.Used)) +
+	geom_bar() + facet_grid(. ~ Algorithm) +
+	scale_y_continuous(name='Mean Error') +
+	scale_x_discrete(name=NA) +
+	scale_fill_discrete(name='Features Used') +
+	opts(title="Predictive Error for GLM and Ordered Logistic Regression", axis.text.x = theme_blank(), axis.title.x = theme_blank(), axis.ticks = theme_blank());
 
 #fit.glm.bare <- glm(C1~A1, poisson, data, na.action=na.omit);
 #fit.glm.stepped <- step(fit.glm.bare, scope=C1~(A1+A2+A3+A4+A5+A6+A7A+A7B+A7C+A7D+D3A+D3B+F1+F2+F3+F4+F5+F6A+F6B+F6C+F6D+F6E+F6F+F6G+F6H+F6I+F7+F8+G14+G15)^2);
 #summary(fit.glm);
 #summary(fit.glm.stepped);
+
