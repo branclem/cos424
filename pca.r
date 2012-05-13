@@ -4,7 +4,7 @@ library(ggplot2);
 source('data_prep.R');
 #source('validation.R');
 #-------------------------------------------------------
-test.pca <- function(data) {
+test.pca <- function(data, formula) {
   
   # Fit on the whole dataset just as a sanity check
   #    fit.glm <- glm(formula, poisson, data);
@@ -16,7 +16,7 @@ test.pca <- function(data) {
   #get rid of the first three columns
   pred <- cross.validate.pca(5,
                          data[1:N,],
-                         function(data) { return(princomp(data)) },
+                         function(data) { return(princomp(data, formula=formula)) },
                          function(model, new.data) {return(predict(model, newdata=new.data)) },
                          verbose=F );
  # pred <- family$linkinv(pred);
@@ -120,12 +120,6 @@ cross.validate.pca <- function(k, data, fit, pred, verbose=F) {
 # results <- data.frame(Algorithm=character(16), 'Features Used'=character(16), Error=numeric(16), stringsAsFactors=F);
 
 #data <- get.data.numeric()[,4:400];
-test.pca(data);
-#subset the data: Demographic
-#data.demographic<-data.frame(data$C1,data$A1,data$A2,data$A3,data$A4,data$A5,data$A6,data$A7A,data$A7B,data$A7C,data$A7D,data$G1,data$G2,data$G3A,data$G3B,data$G3C,data$G3D,data$G3E,data$G4);
-data.demographic<-data[,c('C1', 'A1','A2','A3','A4','A5','A6','A7A','A7B','A7C','A7D','G1','G2','G3A','G3B','G3C','G3D','G3E','G4')];
-test.pca(data.demographic);
-#sanity check
-data.c1<-data[,c('C1', 'A1')];
-test.pca(data.c1)
-
+test.pca(data, formula='C1~'+demographic);
+test.pca(data, formula='C1~'+student.life);
+test.pca(data, formula='C1~'+personal.alcohol.related);
