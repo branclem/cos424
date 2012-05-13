@@ -2,11 +2,13 @@
 # Run k-way cross validation on the provided data set. The API is as
 # follows: fit(training data) should fit return a model, and then
 # pred(model, test data element) should predict the response for the new data.
-cross.validate <- function(k, data, fit, pred, verbose=F) {
+cross.validate <- function(k, data, fit, pred, folds=NULL, verbose=F) {
     predictions <- rep(0, nrow(data));
 
-    # Choose the folds.
-    folds <- sample(rep(1:k, length=nrow(data)));
+    # Choose the folds, if they were not prespecified.
+    if (is.null(folds)) {
+        folds <- sample(rep(1:k, length=nrow(data)));
+    }
 
     for (i in 1:k) {
 
