@@ -1,4 +1,37 @@
 \section{Methodology}
 \label{sec:methods}
 
-FILL ME IN!
+We now give a precise description of the methods we use to prepare the dataset for our use and evaluate predictive classifiers.
+
+\subsection{Data Preprocessing}
+
+As is often the case in the real world, the data is not quite as neat and perfect as we would like it to be.  Thus, we apply a series of preprocessing steps to prepare the data for our algorithms.
+
+We begin by shuffling the participants randomly to ensure no systematic bias in the ordering of the data.  The last 1,905 participants are set aside as a final validation set, and the remaining 8,999 will be used for training and testing when we perform evaluation using cross-validation.  The features were all then converted from categorical formats to numeric formats, with integral values representing the possible answers to each questions. Modelling the features as numeric instead of categorical had no impact on the results except for drastically reducing runtime; all experiments were tried both ways but detailed results are omitted for brevity.
+
+\begin{table}[t]
+\centering
+\begin{tabular}{|c|c|}
+\hline
+Response & \% of Participants \\ \hline
+none & 61.22\% \\ \hline
+once & 12.62\% \\ \hline
+twice & 9.67\% \\ \hline
+3 to 5 times & 12.10\% \\ \hline
+6 to 9 times & 3.54\% \\ \hline
+10 + times & 0.86\% \\ \hline
+\end{tabular}
+\caption{Responses to survey question C1: ``Think back over the last two weeks. How many times have you had five or more drinks in a row?''}
+\label{C1}
+\end{table}
+
+A substantial number of features had missing responses for many participants.  In some cases this was because a question only needed to be answered if a previous question was answered a certain way (e.g. ``If you transferred from another school, was your previous school located in the USA?''), and in others the data was simply missing.  Nonetheless, this is problematic as our algorithms do not gracefully handle missing features.  34 participants did not provide a response to question C1 about binge drinking, so we discarded them completely, since there is no way to proceed without a value for the response variable.  This left the breakdown of responses in Figure \ref{C1}.  For the other features, we could not afford to completely throw away participants since almost every participant was missing some features.  To cope with this we used a two-tiered strategy:
+
+\begin{itemize}
+\item Survey questions with less than 7,000 responses were eliminated from the data completely.
+\item Survey questions with 7,000 or more responses had their missing values replaced by the mean of the non-missing responses to the same question (rounded to an integer).
+\end{itemize}
+
+Intuitively, those features in the second category are preserved because there are few missing values and they are still likely to have significant predictive power.  After this filtering process, 264 features other than the response remained, and these formed the basis for our predictions.
+
+\subsection{Evaluation Methodology}
