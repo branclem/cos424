@@ -120,6 +120,6 @@ cross.validate.pca <- function(k, data, fit, pred, verbose=F) {
 # results <- data.frame(Algorithm=character(16), 'Features Used'=character(16), Error=numeric(16), stringsAsFactors=F);
 
 #data <- get.data.numeric()[,4:400];
-test.pca(data, formula='C1~'+demographic);
-test.pca(data, formula='C1~'+student.life);
-test.pca(data, formula='C1~'+personal.alcohol.related);
+test.pca(data, formula=as.formula(paste('C1~',demographic)));
+test.pca(data, formula=as.formula(paste('C1~',student.life)));
+test.pca(data, formula=as.formula(paste('C1~',personal.alcohol.related)));
