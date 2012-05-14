@@ -62,7 +62,7 @@ We are attempting to predict the number of times within the past two weeks that 
 
 \begin{itemize}
 \item The \emph{percentage accuracy} is the percentage of students whose binge drinking category was predicted exactly.  Under this metric, if the true answer is ``none'' then predicting ``10+ times'' and ``once'' are equally good.
-\item The \emph{mean deviation} is the average of the number of categories between the true response and the predicted response. Under this metric, if the true answer is ``none'' then a prediction of ``once'' will receive a deviation of 1, while a prediction of ``10+ times'' will receive a deviation of 5 since the prediction is 5 categories too high.
+\item The \emph{mean error} is the average of the number of categories between the true response and the predicted response. Under this metric, if the true answer is ``none'' then a prediction of ``once'' will receive an error of 1, while a prediction of ``10+ times'' will receive an error of 5 since the prediction is 5 categories too high.
 \end{itemize}
 
 Percentage accuracy shows us when the algorithm is getting answers perfectly correct, but it completely leaves out the numerical structure of the response.  Mean deviation takes this into account and penalizes an algorithm less if its answer is close to the right answer.

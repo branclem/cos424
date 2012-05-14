@@ -224,6 +224,8 @@ test.lrm.mle <- function(data, formula, folds=NULL) {
 
 build.regularized.plot <- function() {
 
+	library(glmnet);
+
 	train <- data[1:6000,];
 	test <- data[6001:8965,];
 	form <- formula4;
@@ -426,15 +428,14 @@ ggplot(results[1:20,], aes(x=Features.Used, y=Error, fill=Features.Used)) +
 	scale_y_continuous(name='Mean Error') +
 	scale_x_discrete(name=NA) +
 	scale_fill_discrete(name='Features Used') +
-	opts(title="Predictive Error for GLM and Ordered Logistic Regression", axis.text.x = theme_blank(), axis.title.x = theme_blank(), axis.ticks = theme_blank());
+	opts(axis.text.x = theme_blank(), axis.title.x = theme_blank(), axis.ticks = theme_blank());
 
 
-# TODO: update this graph.
 ggplot(results[1:20,], aes(x=Features.Used, y=pct, fill=Features.Used)) +
 	geom_bar() + facet_grid(. ~ Algorithm) +
-	scale_y_continuous(name='Mean Error') +
+	scale_y_continuous(name='Percentage Accuracy') +
 	scale_x_discrete(name=NA) +
-	scale_fill_discrete(name='Features Used') +
-	opts(title="Predictive Error for GLM and Ordered Logistic Regression", axis.text.x = theme_blank(), axis.title.x = theme_blank(), axis.ticks = theme_blank());
+#	scale_fill_discrete(name='Features Used') +
+	opts(legend.position="none", axis.text.x = theme_blank(), axis.title.x = theme_blank(), axis.ticks = theme_blank());
 
 
