@@ -25,13 +25,55 @@ twice & 9.67\% \\ \hline
 \label{C1}
 \end{table}
 
-A substantial number of features had missing responses for many participants.  In some cases this was because a question only needed to be answered if a previous question was answered a certain way (e.g. ``If you transferred from another school, was your previous school located in the USA?''), and in others the data was simply missing.  Nonetheless, this is problematic as our algorithms do not gracefully handle missing features.  34 participants did not provide a response to question C1 about binge drinking, so we discarded them completely, since there is no way to proceed without a value for the response variable.  This left the breakdown of responses in Figure \ref{C1}.  For the other features, we could not afford to completely throw away participants since almost every participant was missing some features.  To cope with this we used a two-tiered strategy:
+A substantial number of features had missing responses for many participants.  In some cases this was because a question only needed to be answered if a previous question was answered a certain way (e.g. ``If you transferred from another school, was your previous school located in the USA?''), and in others the data was simply missing.  Nonetheless, this is problematic as our algorithms do not gracefully handle missing features.  34 participants did not provide a response to question C1 about binge drinking, so we discarded them completely, since there is no way to proceed without a value for the response variable.  This left the breakdown of responses in Table \ref{C1}.  For the other features, we could not afford to completely throw away participants since almost every participant was missing some features.  To cope with this we used a two-tiered strategy:
 
 \begin{itemize}
 \item Survey questions with less than 7,000 responses were eliminated from the data completely.
 \item Survey questions with 7,000 or more responses had their missing values replaced by the mean of the non-missing responses to the same question (rounded to an integer).
 \end{itemize}
 
-Intuitively, those features in the second category are preserved because there are few missing values and they are still likely to have significant predictive power.  After this filtering process, 264 features other than the response remained, and these formed the basis for our predictions.
+Intuitively, those features in the second category are preserved because there are few missing values and they are still likely to have significant predictive power.  After this filtering process, 262 features other than the response remained, and these formed the basis for our predictions.
 
 \subsection{Evaluation Methodology}
+
+We evaluate our algorithms using the standard 5-fold cross-validation technique.  The data was divided into 5 folds up front so that every algorithm would use exactly the same folds, and random fold generation would not cause differences in our predictive measurement accuracy.  An algorithm is trained on each set of 4 folds and used to predict the responses in the remaining fold; this gives a predicted response for every survey participant that can be compared to the true response.
+
+\subsubsection{Evaluation Metrics}
+
+We are attempting to predict the number of times within the past two weeks that a student has engaged in binge drinking.  This is an ordered categorical variable: the responses were binned (i.e. a student who engaged in binge drinking 3 times and one who did so 5 times would both be in the ``3 to 5 times'' category), but they are not independent classes - there is a clear numerical structure.  For this reason we define two different evaluation metrics:
+
+\begin{itemize}
+\item The \emph{percentage accuracy} is the percentage of students whose binge drinking category was predicted exactly.  Under this metric, if the true answer is ``none'' then predicting ``10+ times'' and ``once'' are equally good.
+\item The \emph{mean deviation} is the average of the number of categories between the true response and the predicted response. Under this metric, if the true answer is ``none'' then a prediction of ``once'' will receive a deviation of 1, while a prediction of ``10+ times'' will receive a deviation of 5 since the prediction is 5 categories too high.
+\end{itemize}
+
+Percentage accuracy shows us when the algorithm is getting answers perfectly correct, but it completely leaves out the numerical structure of the response.  Mean deviation takes this into account and penalizes an algorithm less if its answer is close to the right answer.
+
+\subsubsection{Feature Classes}
+
+\begin{table}[t]
+\centering
+\begin{tabular}{|c|c|c|}
+\hline
+Class & \# of Features & Description \\ \hline
+1 & 30 & Demographic, Background \\ \hline
+2 & 77 & Student Life, Personal Habits \\ \hline
+3 & 82 & \pbox{20cm}{Attitudes about Alcohol Policy \\ \centering and Student Drinking} \\ \hline
+4 & 9 & Alcohol-Related Personal History \\ \hline
+5 & 64 & Alcohol Consumption \\ \hline
+\end{tabular}
+\caption{The features in the alcohol data set were split into 5 classes based on semantic meaning and ease of collection.}
+\label{Classes}
+\end{table}
+
+The participants in this study took a comprehensive survey detailing their lives and attitudes towards campus life and alcohol, but in other applications we may wish to predict binge drinking without necessarily having all this information.  To quantify the impact of various information, we divide the available features into five classes based on how difficult they are to obtain and how closely (in the intuitive sense) they are related to alcohol consumption.  Some information is easy to collect about any student but may yield little predictive power, while others may require a detailed survey but are quite predictive.  The classes are as follows and are summarized in Table \ref{Classes}:
+
+\begin{enumerate}
+\item \emph{Class 1} features correspond to easily-accessible demographic and background information such as age, gender, and religious upbringing.
+\item \emph{Class 2} features include student activities such as participation in extracurricular organizations and personal habits not related to alcohol directly, like cigarette smoking.
+\item \emph{Class 3} features identify attitudes about alcohol policy and student drinking, such as thoughts on the legal drinking age and perception of how much classmates drink.
+\item \emph{Class 4} features correspond to personal history directly related to alcohol, such as drinking behavior in high school and DUI charges.
+\item \emph{Class 5} features are direct information about current alcohol consumption, such as the average number of drinks per week.  This class mainly serves as an upper bound for predictive accuracy, since if we have this we also probably know the student's binge drinking habits.
+\end{enumerate}
+
+When evaluating algorithms we start by using only feature class 1, and then we add each class in turn - next using classes 1 and 2, then classes 1 through 3, and so on.  This shows how well the algorithm can perform at each level of available data.
