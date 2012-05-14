@@ -9,7 +9,9 @@ As is often the case in the real world, the data is not quite as neat and perfec
 
 We begin by shuffling the participants randomly to ensure no systematic bias in the ordering of the data.  The last 1,905 participants are set aside as a final validation set, and the remaining 8,999 will be used for training and testing when we perform evaluation using cross-validation.  The features were all then converted from categorical formats to numeric formats, with integral values representing the possible answers to each questions. Modelling the features as numeric instead of categorical had no impact on the results except for drastically reducing runtime; all experiments were tried both ways but detailed results are omitted for brevity.
 
+
 \begin{table}[t]
+\begin{minipage}[b]{0.45\linewidth}
 \centering
 \begin{tabular}{|c|c|}
 \hline
@@ -23,6 +25,22 @@ twice & 9.67\% \\ \hline
 \end{tabular}
 \caption{Responses to survey question C1: ``Think back over the last two weeks. How many times have you had five or more drinks in a row?''}
 \label{C1}
+\end{minipage}
+\hfill
+\begin{minipage}[b]{0.5\linewidth}
+\centering
+\begin{tabular}{|c|c|c|}
+\hline
+Class & Features & Description \\ \hline
+1 & 30 & Demographic, Background \\ \hline
+2 & 77 & Student Life, Personal Habits \\ \hline
+3 & 82 & \pbox{20cm}{Attitudes about Alcohol Policy \\ \centering and Student Drinking} \\ \hline
+4 & 9 & Alcohol-Related Personal History \\ \hline
+5 & 64 & Alcohol Consumption \\ \hline
+\end{tabular}
+\caption{The features in the alcohol data set were split into 5 classes based on semantic meaning and ease of collection.}
+\label{Classes}
+\end{minipage}
 \end{table}
 
 A substantial number of features had missing responses for many participants.  In some cases this was because a question only needed to be answered if a previous question was answered a certain way (e.g. ``If you transferred from another school, was your previous school located in the USA?''), and in others the data was simply missing.  Nonetheless, this is problematic as our algorithms do not gracefully handle missing features.  34 participants did not provide a response to question C1 about binge drinking, so we discarded them completely, since there is no way to proceed without a value for the response variable.  This left the breakdown of responses in Table \ref{C1}.  For the other features, we could not afford to completely throw away participants since almost every participant was missing some features.  To cope with this we used a two-tiered strategy:
@@ -50,21 +68,6 @@ We are attempting to predict the number of times within the past two weeks that 
 Percentage accuracy shows us when the algorithm is getting answers perfectly correct, but it completely leaves out the numerical structure of the response.  Mean deviation takes this into account and penalizes an algorithm less if its answer is close to the right answer.
 
 \subsubsection{Feature Classes}
-
-\begin{table}[t]
-\centering
-\begin{tabular}{|c|c|c|}
-\hline
-Class & \# of Features & Description \\ \hline
-1 & 30 & Demographic, Background \\ \hline
-2 & 77 & Student Life, Personal Habits \\ \hline
-3 & 82 & \pbox{20cm}{Attitudes about Alcohol Policy \\ \centering and Student Drinking} \\ \hline
-4 & 9 & Alcohol-Related Personal History \\ \hline
-5 & 64 & Alcohol Consumption \\ \hline
-\end{tabular}
-\caption{The features in the alcohol data set were split into 5 classes based on semantic meaning and ease of collection.}
-\label{Classes}
-\end{table}
 
 The participants in this study took a comprehensive survey detailing their lives and attitudes towards campus life and alcohol, but in other applications we may wish to predict binge drinking without necessarily having all this information.  To quantify the impact of various information, we divide the available features into five classes based on how difficult they are to obtain and how closely (in the intuitive sense) they are related to alcohol consumption.  Some information is easy to collect about any student but may yield little predictive power, while others may require a detailed survey but are quite predictive.  The classes are as follows and are summarized in Table \ref{Classes}:
 
