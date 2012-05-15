@@ -6,13 +6,7 @@ library(ggplot2);
 source('data_prep.R');
 source('validation.R');
 
-formula<-as.formula('data.C1 ~ scores1 + scores2 + scores3 + scores4');
-fit.pca<-function(data, family)
-{ 
-  scores<-get.scores(data); 
-  cat("  proceeding to fit\n"); 
-  return(glm(formula=formula, family=family, data=scores)) 
-}
+
 
 get.scores<-function(data)
 {
@@ -34,7 +28,7 @@ get.scores<-function(data)
   scores4<-data.matrix(scale(as.matrix(data.without.C1), center = center, scale = scale))%*%t(t(comp4));
   scores<-data.frame('scores1'=scores1, 'scores2'=scores2, 'scores3'=scores3, 'scores4'=scores4, 'C1'=data$C1);
   cat("  Principal components\n")
-  return(scores)
+  return(list('scores'=scores, 'data.pca'=data.pca ))
 }
 
 get.scores.from.old<-function(data, data.pca)
@@ -48,8 +42,10 @@ get.scores.from.old<-function(data, data.pca)
   comp3<-data.pca$rotation[,3];
   comp4<-data.pca$rotation[,4];
   
-  center <- data.pca$center
-  scale <- data.pca$scale
+  data.pca.new<-prcomp(data.without.C1, tol = 0.001)
+  
+  center <- data.pca.new$center
+  scale <- data.pca.new$scale
   
   scores1<-data.matrix(scale(as.matrix(data.without.C1), center = center, scale = scale))%*%t(t(comp1));
   scores2<-data.matrix(scale(as.matrix(data.without.C1), center = center, scale = scale))%*%t(t(comp2));
@@ -68,8 +64,10 @@ test.glm <- function(data, formula, family, floor=T, folds=NULL) {
     actual <- data$C1[1:N];
     pred <- cross.validate(5,
                data[1:N,],
-               function(data) {return(fit.pca(data, family))},
-	         function(model, new.data) {scores<-get.scores(new.data); return(predict(model, new.data=scores)) },
+               function(data) {scores<-get.scores(data); 
+                               cat("  proceeding to fit\n"); 
+                               return(list('glm'=glm(formula=formula, family=family, data=scores$scores), 'data.pca'=scores$data.pca) )},
+	         function(model, new.data) {scores<-get.scores.from.old(new.data, model$data.pca); return(predict(model$glm, newdata=scores)) },
 		   folds=NULL,
                verbose=T );
     #pred <- family$linkinv(pred);
@@ -103,151 +101,6 @@ test.glm <- function(data, formula, family, floor=T, folds=NULL) {
 
 }
 
-test.step.glm <- function(data, formula, family, folds=NULL) {
-
-    cat('Stepping glm -', family$family, '- on', nrow(data), 'rows of data.\n');
-    N <- nrow(data);
-    actual <- data$C1[1:N];
-    pred <- cross.validate(5,
-               data[1:N,],
-               function(data) { return(step(glm(C1~A2, family, data=data), scope=formula, k=log(nrow(data)))) },
-	         function(model, new.data) {return(predict(model, newdata=new.data)) },
-               folds=folds,
-               verbose=T );
-    pred <- family$linkinv(pred);
-
-    # Try different rounding modes to predict integer values.
-    rounded.pred <- round(pred);
-    rounded.pred[rounded.pred == 0] = 1;
-    rounded.pred[rounded.pred > 6] = 6;
-
-    floor.pred <- floor(pred);
-    floor.pred[floor.pred <= 0] = 1;
-    floor.pred[floor.pred > 6] = 6;
-
-    cat('Base predictions: avg offset =', mean(abs(pred - actual)), '\n');
-    cat('Rounded predictions: avg offset =', mean(abs(rounded.pred - actual)), ',', 100*length(which(rounded.pred == actual)) / length(actual), '%\n');
-    cat('Floored predictions: avg offset =', mean(abs(floor.pred - actual)), ',', 100*length(which(floor.pred == actual)) / length(actual), '%\n');
-    cat('All 1: avg offset =', mean(abs(rep(1, N) - actual)), ',', 100*length(which(1 == actual)) / length(actual), '%\n');
-
-    r <- list();
-    r$dev <- mean(abs(floor.pred - actual));
-    r$pct <- 100*length(which(floor.pred == actual)) / length(actual);
-    return(r);
-
-}
-
-test.glmnet <- function(data, formula, family, folds=NULL) {
-
-    cat('Running glmnet -', family, '- on', nrow(data), 'rows of data.\n');
-    N <- nrow(data);
-    actual <- data$C1[1:N];
-    pred <- cross.validate(5,
-               data[1:N,],
-               function(data) {
-			mm <- model.matrix(formula, data=data);
-		      fit.glmnet <- glmnet(x=mm, y=data$C1, family);
-			pred <- predict(fit.glmnet,newx=mm);
-			wm <- which.min(colMeans(abs(floor(pred - data$C1))));
-			s <- fit.glmnet$lambda[wm];
-			s <- 0.2;
-			return(glmnet(x=mm, y=data$C1, family, lambda=s))
-		   },
-	         function(model, new.data) {
-			mm <- model.matrix(formula, data=new.data);
-			return(predict(model, newx=mm));
-		   },
-               folds=folds,
-               verbose=T );
-#    pred <- family$linkinv(pred);
-
-	pred;
-
-    # Try different rounding modes to predict integer values.
-    rounded.pred <- round(pred);
-    rounded.pred[rounded.pred == 0] = 1;
-    rounded.pred[rounded.pred > 6] = 6;
-
-    floor.pred <- floor(pred);
-    floor.pred[floor.pred <= 0] = 1;
-    floor.pred[floor.pred > 6] = 6;
-
-    cat('Base predictions: avg offset =', mean(abs(pred - actual)), '\n');
-    cat('Rounded predictions: avg offset =', mean(abs(rounded.pred - actual)), ',', 100*length(which(rounded.pred == actual)) / length(actual), '%\n');
-    cat('Floored predictions: avg offset =', mean(abs(floor.pred - actual)), ',', 100*length(which(floor.pred == actual)) / length(actual), '%\n');
-    cat('All 1: avg offset =', mean(abs(rep(1, N) - actual)), ',', 100*length(which(1 == actual)) / length(actual), '%\n');
-
-    r <- list();
-    r$dev <- mean(abs(floor.pred - actual));
-    r$pct <- 100*length(which(floor.pred == actual)) / length(actual);
-    return(r);
-}
-
-test.polr <- function(data, formula, folds=NULL) {
-
-    data$C1 <- as.factor(data$C1);
-
-    # Run it on this stuff.
-    cat('Running polr on', nrow(data), 'rows of data.\n');    N <- nrow(data);
-    N <- nrow(data);
-    actual <- as.numeric(data$C1[1:N]);
-    pred <- cross.validate(5,
-               data[1:N,],
-               function(data) { return(polr(formula, data=data, method='logistic')) },
-               function(model, new.data) {return(predict(model, newdata=new.data)) },
-               folds=folds,
-               verbose=F );
-    pred <- as.numeric(pred);
-
-    cat('Predictions: avg offset =', mean(abs(pred - actual)), ',', 100*length(which(pred == actual)) / length(actual), '%\n');
-    cat('All 1: avg offset =', mean(abs(rep(1, N) - actual)), ',', 100*length(which(1 == actual)) / length(actual), '%\n');
-
-    data$C1 <- as.numeric(data$C1);
-
-    r <- list();
-    r$dev <- mean(abs(pred - actual));
-    r$pct <- 100*length(which(pred == actual)) / length(actual);
-    return(r);
-
-}
-
-test.lrm <- function(data, formula, folds=NULL) {
-
-    data$C1 <- as.factor(data$C1);
-
-    # Run it on this stuff.
-    cat('Running lrm on', nrow(data), 'rows of data.\n');    N <- nrow(data);
-    N <- nrow(data);
-    actual <- as.numeric(data$C1[1:N]);
-    pred <- cross.validate(5,
-               data[1:N,],
-               function(data) { return(lrm(formula, data=data)) },
-               function(model, new.data) {return(predict(model, newdata=new.data, type="mean")) },
-               folds=folds,
-               verbose=T );
-    cat(pred, '\n');
-    pred <- as.numeric(pred);
-
-    rounded.pred <- round(pred);
-    rounded.pred[rounded.pred == 0] = 1;
-    rounded.pred[rounded.pred > 6] = 6;
-
-    floor.pred <- floor(pred);
-    floor.pred[floor.pred <= 0] = 1;
-    floor.pred[floor.pred > 6] = 6;
-
-    cat('Base predictions: avg offset =', mean(abs(pred - actual)), '\n');
-    cat('Rounded predictions: avg offset =', mean(abs(rounded.pred - actual)), ',', 100*length(which(rounded.pred == actual)) / length(actual), '%\n');
-    cat('Floored predictions: avg offset =', mean(abs(floor.pred - actual)), ',', 100*length(which(floor.pred == actual)) / length(actual), '%\n');
-    cat('All 1: avg offset =', mean(abs(rep(1, N) - actual)), ',', 100*length(which(1 == actual)) / length(actual), '%\n');
-
-    r <- list();
-    r$dev <- mean(abs(floor.pred - actual));
-    r$pct <- 100*length(which(floor.pred == actual)) / length(actual);
-    return(r);
-
-}
-
 test.lrm.mle <- function(data, formula, folds=NULL) {
 
     data$C1 <- as.factor(data$C1);
@@ -257,15 +110,18 @@ test.lrm.mle <- function(data, formula, folds=NULL) {
     N <- nrow(data);
     actual <- as.numeric(data$C1[1:N]);
     pred <- cross.validate(5,
-               data[1:N,],
-               function(data) { return(lrm(formula, data=data)) },
-               function(model, new.data) {
-			p <- predict(model, newdata=new.data, type="fitted.ind");
-			return(apply(p, 1, which.max));
-		   },
+                           data[1:N,],
+                           function(data) { scores<-get.scores(data); 
+                                            return(list('glm'=lrm(formula, data=scores$scores), 
+                                                        'data.pca'=scores$data.pca))},
+                           function(model, new.data) {
+                             scores<-get.scores.from.old(new.data, model$data.pca)
+                             p <- predict(model$glm, newdata=scores, type="fitted.ind");
+                             return(apply(p, 1, which.max));
+                           },
                folds=folds,
                verbose=T );
-    pred <- as.numeric(pred);
+    pred <- as.numeric(pred);    
 
     cat('Base predictions: avg offset =', mean(abs(pred - actual)), '\n');
     cat('All 1: avg offset =', mean(abs(rep(1, N) - actual)), ',', 100*length(which(1 == actual)) / length(actual), '%\n');
@@ -319,8 +175,11 @@ build.regularized.plot <- function() {
 	lines(x=fit.glmnet$lambda, y=rep(mean(abs(floor.pred2 - test$C1)), length(fit.glmnet$lambda)), col="orange");
 	lines(x=fit.glmnet$lambda, y=rep(mean(abs(pred2 - test$C1)), length(fit.glmnet$lambda)), col="brown");
 }
-#data <- get.data.numeric()[,4:400];
-data.backup<-data;
+
+#----------------------------------------------------------------------------------
+formula<-as.formula('C1 ~ scores1 + scores2 + scores3 + scores4');
+data <- get.data.numeric()[,4:400];
+#data.backup<-data;
 #data<-scores; #scores obtained in pca_individual_components.R 
 # Generate a fixed set of folds that everyone will use.
 folds <- sample(rep(1:5, length=nrow(data)));
