@@ -1,0 +1,6 @@
+\section{Dataset}
+\label{sec:data}
+
+Our analysis is based on the data from the 2001 Harvard School of Public Health College Alcohol Study \cite{survey}.  This study surveyed 10,904 students from 119 different four-year universities about their drinking patterns, attitudes towards alcohol and other drugs, and participation in various aspects of campus life, among other things.  The features used in our analysis come from the pool of 342 survey questions, ranging from basic demographic information (``How old are you?'') to detailed information about a student's perception of their own campus (``If a student is caught on your campus using a fake ID to get alcohol, what is likely to happen to the student?'').
+
+We are interested in predicting whether a student is likely to engage in binge drinking.  In accordance with the survey, we will define binge drinking as consuming five or more drinks in a row.  We thus wish to predict the student's response to survey question C1: ``Think back over the last two weeks. How many times have you had five or more drinks in a row?'', with possible responses ``none'', ``once'', ``twice'', ``3 to 5 times'', ``6 to 9 times'', and ``10+ times''.  The other survey responses will serve as features for our classifier.

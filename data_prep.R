@@ -55,7 +55,7 @@ get.data.numeric <- function() {
 	  if (num.not.na < 7000) {
             cat(i, ':', names(data)[i], ':', num.not.na, '\n');
             flush.console();
-            to.remove = c(to.remove, i);
+            to.remove <- c(to.remove, i);
 	  }
 	  else {
             data[is.na(data[,i]), i] <- round(mean(not.na));
@@ -68,4 +68,29 @@ get.data.numeric <- function() {
     return(data);
 
 }
+
+
+# Return the data factored into integer form and with N/As
+# omitted.
+get.data.factor <- function(data=NULL) {
+
+    # If they already have the numerical data they can pass
+    # it in, otherwise read it ourselves
+    if (is.null(data)) {
+	    data <- get.data.numeric();
+    }
+
+    for (i in 3:400) {
+        data[,i] <- as.ordered(data[,i]);
+        if (length(levels(data[,i])) == 2 ) {
+            data[,i] <- as.factor(as.numeric(data[,i]));
+        }
+    }
+
+    data$C1 <- as.numeric(data$C1);
+
+    return(data);
+
+}
+
 
