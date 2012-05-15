@@ -19,37 +19,54 @@ Correlation with C1 & Variable Name &Short summary of the variable given in the 
 0.606 & PERSIST	&Continue high school drinking behavior\\
 0.598 & D4A		&Compare own drinking to other students\\
 -0.579 & NOBINGE	&Never a binger\\
-0.535 & PROB5	&Problems caused by alcohol > 5\\
-0.530 & C10		&When last had a drink\\
-0.526 & DRPROBB	&Drinking problems: missed a class \\
-0.516 & DR2DRUNK&Drink to get drunk\\
-0.513 & CONTBING	&Student binged in high school and continues in college\\
-0.512 &C17A		&How far did your father (or person who served as father) go in school?\\
-0.511 & G11		&5 or more drinks in a row in high school\\
--0.497 & A8F		&Social Life: Parties\\
-0.483 & D3A		&Max drinks male\\
-0.482 & DRPROBE	&Drinking problems: forget\\
 \hline
 \end{tabular}
-\caption{Top 20 correlations with C1. Evidently, drinking is related to drinking. These data suggest that dimension reduction could be useful to get rid of redundant data and make the important relationships between alcohol and other variables clearer.}
+\caption{Top 10 correlations with C1. Evidently, drinking is related to drinking. These data suggest that dimension reduction could be useful to get rid of redundant data and make the important relationships between alcohol and other variables clearer.}
 \label{correlations}
 \end{table*}
 \end{center}
 
 Redundancy in the data can be addressed by applying dimension reduction using principal component analysis.
 \subsection{Principal Component Analysis}
-In this subsection, we used the standard R function prcomp() to reduce the number of variables from 397 to 4.
+In this subsection, we used the standard R function prcomp() to reduce the number of variables from 397 to 4 by singular value decomposition (SVD) \cite{berrar}. A brief summary of SVD follows. 
 
-{\it Stuff about choice of number of components, variance. Plot of variance vs. number of components}
+We define left- and right-singular vectors, $u$ and $v$, such that:
+
+\begin{equation}
+Xv=su,~X^*u = sv;
+\end{equation}
+where each $s$ is a singular value of $X$. We are interested in finding these vectors because it can be shown that a least-squares approximation to $X$ equals $\sum_{k=1}^{l}u_ks_kv_k^T$. In order to take advantage of this property to analyze a $m\times n$ matrix $X$ containing $m$ observations of $n$ variables, we look for solve $X = USV^T$. Here $U$ contains a set of left singular vectors $u_k$, and $V$ contains the set of right singular vectors $v_k$, and $S$ is a diagonal matrix containing singular values $s_k$, where $k = 1, ..., n$. 
+
+%
+%\begin{figure}
+%\centering
+%%\includegraphics[scale=0.5]{linear_plus_pca.pdf}
+%\caption{Mean error using three kinds of regression on a dataset whose dimension has been reduced by PCA.}
+%\label{}
+%\end{figure}
 
 
-{\it Top ten variables in each component.}
+\begin{center}
+\begin{table*}[ht]
+\begin{tabular}{l l l l}
+\hline \hline
+Component 1 & Component 2 &Component 3&Component 4\\ \hline 
+\hline
+\end{tabular}
+\caption{Top five terms in each component.}
+\label{components}
+\end{table*}
+\end{center}
 
-Let us see how dimension-reduced analysis will compare to previous methods. As usual, we are performing a five-fold validation procedure. We run PCA on the training set to extract four principal components, and their mixing coefficients for each observation. We run several regression algorithms on these four dimensions. We then calculate the mixing coefficients for the same components, but in the testing set, and use them to predict C1 using our regression model. 
-The lowest error we have obtained is 0.42, which is very close to our best regression results, plotted in Fig.\ref{}.
+Let us see how dimension-reduced analysis will compare to previous methods. As usual, we are performing a five-fold validation procedure. We run PCA on the training set to extract four principal components, and their mixing coefficients for each observation. We then fit the response variable to these four dimensions using several regression algorithms. Finally, we calculate the mixing coefficients using the same principal components, but in the testing set, and use them to predict C1. 
+
+The predictive error using three different regression algorithms after PCA are plotted in Fig. \ref{linear_plus_pca}. The lowest error we have obtained is 0.42, which is very close to the best error from applying regression on all 397 variables. 
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.5]{linear_plus_pca.pdf}
+\caption{Mean error using three kinds of regression on a dataset whose dimension has been reduced by PCA.}
+\label{linear_plus_pca}
+\end{figure}
 
 The most amazing thing about PCA is that in the end, four numbers were sufficient to encode 397 variables without losing any noticeable accuracy of prediction.
-
-\subsection{Dimension Reduction: PCA}
-
-\subsection{In}
