@@ -1,4 +1,55 @@
-\section{PCA, ICA, SVD}
+\section{Looking for Underlying Structure}
 \label{sec:PCA}
+The size of our testing set is 8965 $\times$ 397. However, we suspect that at least some of these data points are redundant. This section will explore some of the underlying structure of the data by looking at correlations between variables and employing dimension reduction techniques such as principal component analysis (PCA) and independent component analysis (IPA). 
+\subsection{Correlations}
+The first line of attack is to calculate the correlation matrix. It will provide two pieces of information. First, presence of large non-zero off-diagonal values in this matrix will be a good indication that redundant dimensions are present. Second, correlations of our response variable C1 with other variables might indicate which variables are tied most closely together with binge drinking. We applied cor() to the data, and sorted the results by column C1, which we earlier picked as the response variable. The top twenty variables are given in Tab.\ref{correlations}. These results are disappointing in the sense that we did not learn anything new about the data, merely discovered a lot of redundancy. 
 
-What is these even?
+\begin{center}
+\begin{table*}[ht]
+\begin{tabular}{l l l}
+\hline \hline
+Correlation with C1 & Variable Name &Short summary of the variable given in the Codebook\\ \hline 
+0.900 & FREQBING	&Frequent binger\\
+0.837 & DRINKCAT	&Levels of drinking and binging\\
+0.773 & BINGE		&Students binge in college\\
+0.742 & VOL30		&Average number of drinks last 30 days\\
+0.666 & NUMPROB	&Problems with alcohol\\
+0.648 & C7		&Current use of alcohol\\
+0.633 & C2		&Past 2 weeks - four drinks in a row\\
+0.606 & PERSIST	&Continue high school drinking behavior\\
+0.598 & D4A		&Compare own drinking to other students\\
+-0.579 & NOBINGE	&Never a binger\\
+0.535 & PROB5	&Problems caused by alcohol > 5\\
+0.530 & C10		&When last had a drink\\
+0.526 & DRPROBB	&Drinking problems: missed a class \\
+0.516 & DR2DRUNK&Drink to get drunk\\
+0.513 & CONTBING	&Student binged in high school and continues in college\\
+0.512 &C17A		&How far did your father (or person who served as father) go in school?\\
+0.511 & G11		&5 or more drinks in a row in high school\\
+-0.497 & A8F		&Social Life: Parties\\
+0.483 & D3A		&Max drinks male\\
+0.482 & DRPROBE	&Drinking problems: forget\\
+\hline
+\end{tabular}
+\caption{Top 20 correlations with C1. Evidently, drinking is related to drinking. These data suggest that dimension reduction could be useful to get rid of redundant data and make the important relationships between alcohol and other variables clearer.}
+\label{correlations}
+\end{table*}
+\end{center}
+
+Redundancy in the data can be addressed by applying dimension reduction using principal component analysis.
+\subsection{Principal Component Analysis}
+In this subsection, we used the standard R function prcomp() to reduce the number of variables from 397 to 4.
+
+{\it Stuff about choice of number of components, variance. Plot of variance vs. number of components}
+
+
+{\it Top ten variables in each component.}
+
+Let us see how dimension-reduced analysis will compare to previous methods. As usual, we are performing a five-fold validation procedure. We run PCA on the training set to extract four principal components, and their mixing coefficients for each observation. We run several regression algorithms on these four dimensions. We then calculate the mixing coefficients for the same components, but in the testing set, and use them to predict C1 using our regression model. 
+The lowest error we have obtained is 0.42, which is very close to our best regression results, plotted in Fig.\ref{}.
+
+The most amazing thing about PCA is that in the end, four numbers were sufficient to encode 397 variables without losing any noticeable accuracy of prediction.
+
+\subsection{Dimension Reduction: PCA}
+
+\subsection{In}
