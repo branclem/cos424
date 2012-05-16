@@ -1,4 +1,7 @@
 \section{Conclusions}
 \label{sec:conclusions}
+We have analyzed drinking behavior on college campuses using several algorithms: generalized linear models, regression, mixture models, and principal component analysis. In order to evaluate the goodness of fit for each algorithm, we attempted to predict frequencies of binge drinking. We performed five-fold cross-validation and recorded average errors in our predictions. 
 
-Conclude meh!
+We have also studied relationships between different variables through clustering and principal component analysis. Large off-diagonal elements in the correlation matrix obtained from the raw data indicated presence of redundant variables. As a response, we used SVD to reduce the number of dimensions of a training set from ~200 to 4, and then projected the testing sets onto these four dimensions before performing prediction. To our surprise, we were able to retain majority of the information even after the number of dimensions was reduced by a factor of twenty.
+ 
+We also reserved a final validation test, which was never analyzed or looked at. Final validation using models learned from the training data showed similar average errors as the ones obtained from five-fold validation.
