@@ -439,3 +439,15 @@ ggplot(results[1:20,], aes(x=Features.Used, y=pct, fill=Features.Used)) +
 	opts(legend.position="none", axis.text.x = theme_blank(), axis.title.x = theme_blank(), axis.ticks = theme_blank());
 
 
+data <- get.data.numeric();
+validation.set <- get.validation.numeric(data);
+
+lrm.fit <- lrm(formula5, data=data);
+p <- predict(lrm.fit, newdata=validation.set, type="fitted.ind");
+pred <- apply(p, 1, which.max);
+actual <- validation.set$C1;
+
+dev <- mean(abs(pred - actual));
+pct <- 100*length(which(pred == actual)) / length(actual);
+cat(pct, '%, mean =', dev, '\n');
+
