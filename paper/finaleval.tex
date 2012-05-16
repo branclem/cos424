@@ -3,7 +3,7 @@
 
 Finally, we wish to prove that the results from our cross-validation tests on the various algorithms we experimented with are trustworthy.  To do this, we return to the validation set consisting of 1,905 participants that we originally set aside and have not used since, training on all of the train/test data and making predictions for the validation set.  If our algorithms generalize well, then we should expect to see similar predictive results in terms of percentage accuracy and mean error to our cross-validation data.  We only opted to pursue our best-performing linear and PCA-based algorithms here, so we ran ordered logistic regression on the original features and the feature sets after running PCA.  The results, compared with the original cross-validation tests, are shown in Tables \ref{finaleval_table1} and \ref{finaleval_table2}.  Note the incredible similarity in both percentage accuracy and mean error across the test sessions - this gives us high confidence that our results are accurate, since we successfully were able to generalize to the novel validation set.
 
-\begin{table}[t]
+\begin{table}[p]
 \centering
 \begin{tabular}{|c|c|c|c|c|}
 \hline
@@ -19,7 +19,7 @@ Class $\leq$ 5 & 71.58\% & 71.85\% & 0.35 & 0.35 \\ \hline
 \label{finaleval_table1}
 \end{table}
 
-\begin{table}[t]
+\begin{table}[p]
 \centering
 \begin{tabular}{|c|c|c|c|c|}
 \hline
