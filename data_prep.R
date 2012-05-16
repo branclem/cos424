@@ -70,6 +70,41 @@ get.data.numeric <- function() {
 }
 
 
+get.validation.numeric <- function(data) {
+
+    # Read the data.
+    load('alcohol_validation.rda');
+
+    # Convert all fields to numeric.
+    to.remove = NULL;
+    for (i in 3:483) {
+        validation.set[,i] <- as.numeric(validation.set[,i]);
+    }
+
+    # Omit any columns that don't have the response variable.
+    validation.set <- validation.set[!is.na(validation.set$C1),]
+    validation.set <- data.frame(validation.set, row.names=NULL);
+
+    # Prep the ethnicity data.
+    validation.set[is.na(validation.set$G3A),]$G3A <- 0;
+    validation.set[is.na(validation.set$G3B),]$G3B <- 0;
+    validation.set[is.na(validation.set$G3C),]$G3C <- 0;
+    validation.set[is.na(validation.set$G3D),]$G3D <- 0;
+    validation.set[is.na(validation.set$G3E),]$G3E <- 0;
+
+    # Match features to input data.
+    validation.set <- validation.set[colnames(validation.set) %in% colnames(data)];
+
+    # Do mean thingy.
+    for (i in 3:400) {
+        not.na <- validation.set[!is.na(validation.set[,i]),i];
+        validation.set[is.na(validation.set[,i]), i] <- round(mean(not.na));
+    }
+
+    return(validation.set);
+
+}
+
 # Return the data factored into integer form and with N/As
 # omitted.
 get.data.factor <- function(data=NULL) {
